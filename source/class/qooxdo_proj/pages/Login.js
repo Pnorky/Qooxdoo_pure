@@ -393,6 +393,8 @@ qx.Class.define("qooxdo_proj.pages.Login", {
       this._passwordField.setValue("");
       this._errorLabel.setValue("");
       this._errorLabel.setVisibility("hidden");
+      // Re-enable login button in case it was disabled during a previous login attempt
+      this._loginButton.setEnabled(true);
     },
   },
 });

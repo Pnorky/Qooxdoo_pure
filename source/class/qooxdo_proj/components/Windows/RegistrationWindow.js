@@ -21,7 +21,7 @@ qx.Class.define("qooxdo_proj.components.Windows.RegistrationWindow", {
     
     this.setLayout(new qx.ui.layout.VBox(15));
     this.setWidth(450);
-    this.setHeight(350);
+    this.setHeight(250);
     this.setAllowClose(true);
     this.setAllowMaximize(false);
     this.setAllowMinimize(true);
