@@ -1,0 +1,34 @@
+{
+  "name": "qooxdo",
+  "version": "1.0.0",
+  "description": "",
+  "homepage": "https://github.com/Pnorky/Qooxdo-proj#readme",
+  "bugs": {
+    "url": "https://github.com/Pnorky/Qooxdo-proj/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Pnorky/Qooxdo-proj.git"
+  },
+  "license": "ISC",
+  "author": "",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "compile": "qx compile",
+    "serve": "qx serve",
+    "watch": "qx watch",
+    "server": "node backend/server.js",
+    "dev": "node backend/server.js"
+  },
+  "devDependencies": {
+    "@qooxdoo/compiler": "^1.0.5",
+    "@qooxdoo/framework": "^6.0.4"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
+    "sqlite3": "^5.0.2"
+  }
+}
