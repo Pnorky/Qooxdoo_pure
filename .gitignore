@@ -34,3 +34,13 @@ build/
 # Database
 backend/*.db
 backend/*.db-journal
+
+# .NET
+**/bin/
+**/obj/
+*.user
+.vs/
+packages/
+*.suo
+*.tmp
+**/appsettings.json

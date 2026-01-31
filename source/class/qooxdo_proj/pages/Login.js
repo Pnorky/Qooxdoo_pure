@@ -217,27 +217,8 @@ qx.Class.define("qooxdo_proj.pages.Login", {
       // Disable login button during validation
       this._loginButton.setEnabled(false);
 
-      // Send login request to API using fetch
-      fetch("http://localhost:3000/api/auth/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ username: username, password: password })
-      })
-      .then(response => {
-        // Check if response is ok (status 200-299)
-        if (!response.ok) {
-          // Try to parse error message from response
-          return response.json().then(errorData => {
-            const errorMessage = errorData.error || this._getUserFriendlyError(response.status);
-            throw new Error(errorMessage);
-          }).catch(() => {
-            throw new Error(this._getUserFriendlyError(response.status));
-          });
-        }
-        return response.json();
-      })
+      // Send login request using GraphQL
+      qooxdo_proj.utils.GraphQLClient.login(username, password)
       .then(result => {
         if (result && result.success) {
           // Login successful

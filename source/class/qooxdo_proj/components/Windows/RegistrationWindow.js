@@ -147,35 +147,8 @@ qx.Class.define("qooxdo_proj.components.Windows.RegistrationWindow", {
       this._isSubmitting = true;
       this._registerButton.setEnabled(false);
 
-      // Send registration request to API using fetch
-      fetch("http://localhost:3000/api/auth/register", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ username: username, password: password })
-      })
-      .then(async response => {
-        // Parse JSON response first
-        let result;
-        try {
-          result = await response.json();
-        } catch (parseError) {
-          console.error("Failed to parse response:", parseError);
-          throw new Error("Invalid response from server");
-        }
-
-        // Check if response is ok (status 200-299)
-        // Note: 201 (Created) is also considered successful
-        if (!response.ok) {
-          // Response is not ok, but we have parsed JSON
-          const errorMessage = result.error || this._getUserFriendlyError(response.status);
-          throw new Error(errorMessage);
-        }
-
-        // Response is ok, return the parsed result
-        return result;
-      })
+      // Send registration request using GraphQL
+      qooxdo_proj.utils.GraphQLClient.register(username, password)
       .then(result => {
         // Check if registration was successful
         if (result && result.success) {
@@ -186,7 +159,7 @@ qx.Class.define("qooxdo_proj.components.Windows.RegistrationWindow", {
           
           // Fire success event after a short delay
           qx.event.Timer.once(() => {
-            const regUsername = result.user ? result.user.username : username;
+            const regUsername = result.username || username;
             this.fireDataEvent("registrationSuccess", { username: regUsername });
             this.close();
           }, this, 1500);

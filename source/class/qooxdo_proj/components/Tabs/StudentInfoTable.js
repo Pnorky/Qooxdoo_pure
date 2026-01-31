@@ -628,25 +628,8 @@ qx.Class.define("qooxdo_proj.components.Tabs.StudentInfoTable",
       },
 
       _saveStudent: function (studentId, studentData) {
-        // Update with all existing fields
-        const updateData = {
-          ...this._currentStudent,
-          ...studentData
-        };
-
-        fetch(`http://localhost:3000/api/students/${studentId}`, {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify(updateData)
-        })
-        .then(response => {
-          if (!response.ok) {
-            throw new Error(`Server error: ${response.status}`);
-          }
-          return response.json();
-        })
+        // Update student using GraphQL
+        qooxdo_proj.utils.GraphQLClient.updateStudent(studentId, studentData)
         .then(updatedStudent => {
           // Reload students to refresh the table
           this.loadStudents();
@@ -712,18 +695,8 @@ qx.Class.define("qooxdo_proj.components.Tabs.StudentInfoTable",
       },
 
       _deleteStudent: function (studentId) {
-        fetch(`http://localhost:3000/api/students/${studentId}`, {
-          method: "DELETE",
-          headers: {
-            "Content-Type": "application/json"
-          }
-        })
-        .then(response => {
-          if (!response.ok) {
-            throw new Error(`Server error: ${response.status}`);
-          }
-          return response.json();
-        })
+        // Delete student using GraphQL
+        qooxdo_proj.utils.GraphQLClient.deleteStudent(studentId)
         .then(() => {
           // Reload students to refresh the table
           this.loadStudents();
@@ -763,20 +736,9 @@ qx.Class.define("qooxdo_proj.components.Tabs.StudentInfoTable",
         this._studentsData = [];
       },
 
-      // Load students from API
+      // Load students from GraphQL API
       loadStudents: function () {
-        fetch("http://localhost:3000/api/students", {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json"
-          }
-        })
-        .then(response => {
-          if (!response.ok) {
-            throw new Error(`Server error: ${response.status}`);
-          }
-          return response.json();
-        })
+        qooxdo_proj.utils.GraphQLClient.getStudents()
         .then(students => {
           // Clear existing rows
           this.clear();

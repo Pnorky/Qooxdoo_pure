@@ -250,26 +250,10 @@ qx.Class.define("qooxdo_proj.Application",
           college: academicData.previousSchools.college
         };
 
-        // Send to API
+        // Send to GraphQL API
         this._statusLabel.setValue(`<span style='color: blue;'>Saving student...</span>`);
         
-        fetch("http://localhost:3000/api/students", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify(studentData)
-        })
-        .then(response => {
-          if (!response.ok) {
-            return response.json().then(errorData => {
-              throw new Error(errorData.error || `Server error: ${response.status}`);
-            }).catch(() => {
-              throw new Error(`Server error: ${response.status}`);
-            });
-          }
-          return response.json();
-        })
+        qooxdo_proj.utils.GraphQLClient.addStudent(studentData)
         .then(savedStudent => {
           // Add student to table
           this._studentInfoTableWindow.addStudent({
