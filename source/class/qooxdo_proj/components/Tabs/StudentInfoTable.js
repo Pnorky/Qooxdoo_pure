@@ -317,20 +317,16 @@ qx.Class.define("qooxdo_proj.components.Tabs.StudentInfoTable",
         const yearLevelLabel = new qx.ui.basic.Label("Year Level:");
         yearLevelLabel.setWidth(labelWidth);
         const yearLevelField = new qx.ui.form.SelectBox();
-        const yearLevelItems = [];
-        yearLevelItems.push(new qx.ui.form.ListItem("1st Year"));
-        yearLevelItems.push(new qx.ui.form.ListItem("2nd Year"));
-        yearLevelItems.push(new qx.ui.form.ListItem("3rd Year"));
-        yearLevelItems.push(new qx.ui.form.ListItem("4th Year"));
+        const yearLevelItems = [
+          new qx.ui.form.ListItem("1st Year", 1),
+          new qx.ui.form.ListItem("2nd Year", 2),
+          new qx.ui.form.ListItem("3rd Year", 3),
+          new qx.ui.form.ListItem("4th Year", 4)
+        ];
         yearLevelItems.forEach(item => yearLevelField.add(item));
-        if (student.yearLevel) {
-          // Find and select the matching item
-          for (let i = 0; i < yearLevelItems.length; i++) {
-            if (yearLevelItems[i].getLabel() === student.yearLevel) {
-              yearLevelField.setSelection([yearLevelItems[i]]);
-              break;
-            }
-          }
+        if (student.yearLevel != null && student.yearLevel >= 1 && student.yearLevel <= 4) {
+          const item = yearLevelItems[student.yearLevel - 1];
+          if (item) yearLevelField.setSelection([item]);
         }
         formGrid.add(yearLevelLabel, { row: currentRow, column: 0 });
         formGrid.add(yearLevelField, { row: currentRow++, column: 1 });
@@ -464,12 +460,11 @@ qx.Class.define("qooxdo_proj.components.Tabs.StudentInfoTable",
             }
           }
           
-          // Year Level
-          if (student.yearLevel) {
-            // Find and select the matching item
+          // Year Level (integer 1-4)
+          if (student.yearLevel != null && student.yearLevel >= 1 && student.yearLevel <= 4) {
             const yearLevelItems = yearLevelField.getChildren();
             for (let i = 0; i < yearLevelItems.length; i++) {
-              if (yearLevelItems[i].getLabel() === student.yearLevel) {
+              if (yearLevelItems[i].getModel() === student.yearLevel) {
                 yearLevelField.setSelection([yearLevelItems[i]]);
                 console.log("[DEBUG] Set yearLevel:", student.yearLevel);
                 break;
@@ -537,7 +532,7 @@ qx.Class.define("qooxdo_proj.components.Tabs.StudentInfoTable",
             program: (programField.getSelection() && programField.getSelection().length > 0) 
               ? programField.getSelection()[0].getLabel() : "",
             yearLevel: (yearLevelField.getSelection() && yearLevelField.getSelection().length > 0)
-              ? yearLevelField.getSelection()[0].getLabel() : "",
+              ? yearLevelField.getSelection()[0].getModel() : null,
             gradeSchool: gradeSchoolField.getValue() || "",
             highSchool: highSchoolField.getValue() || "",
             college: collegeField.getValue() || ""
@@ -614,7 +609,15 @@ qx.Class.define("qooxdo_proj.components.Tabs.StudentInfoTable",
           if (s.emergencyContactPhone) f.emergencyContactPhone.setValue(s.emergencyContactPhone);
           if (s.relationship) f.relationship.setValue(s.relationship);
           if (s.program) f.program.setValue(s.program);
-          if (s.yearLevel) f.yearLevel.setValue(s.yearLevel);
+          if (s.yearLevel != null && s.yearLevel >= 1 && s.yearLevel <= 4) {
+            const yearLevelItems = f.yearLevel.getChildren();
+            for (let i = 0; i < yearLevelItems.length; i++) {
+              if (yearLevelItems[i].getModel() === s.yearLevel) {
+                f.yearLevel.setSelection([yearLevelItems[i]]);
+                break;
+              }
+            }
+          }
           if (s.gradeSchool) f.gradeSchool.setValue(s.gradeSchool);
           if (s.highSchool) f.highSchool.setValue(s.highSchool);
           if (s.college) f.college.setValue(s.college);
@@ -723,7 +726,7 @@ qx.Class.define("qooxdo_proj.components.Tabs.StudentInfoTable",
             studentData.firstName || "",
             studentData.lastName || "",
             studentData.program || "",
-            studentData.yearLevel || ""
+            (studentData.yearLevel != null ? studentData.yearLevel : "")
           ]
         ]);
       },
@@ -781,7 +784,7 @@ qx.Class.define("qooxdo_proj.components.Tabs.StudentInfoTable",
               studentData.firstName || "",
               studentData.lastName || "",
               studentData.program || "",
-              studentData.yearLevel || ""
+              (studentData.yearLevel != null ? studentData.yearLevel : "")
             ]);
           });
           

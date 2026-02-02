@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using GraphQLApi.Models;
 
 namespace GraphQLApi.Data;
@@ -26,6 +27,11 @@ public class AppDbContext : DbContext
             entity.Property(e => e.LastName).IsRequired();
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
             entity.Property(e => e.UpdatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
+            // YearLevel: store as string in SQLite for compatibility (1-4), map to int? in model
+            entity.Property(e => e.YearLevel).HasConversion(
+                new ValueConverter<int?, string>(
+                    v => v.HasValue ? v.Value.ToString() : null,
+                    v => string.IsNullOrEmpty(v) ? null : (int.TryParse(v, out var n) && n >= 1 && n <= 4 ? n : (int?)null)));
         });
 
         // Configure User entity

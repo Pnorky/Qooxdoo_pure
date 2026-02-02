@@ -62,6 +62,7 @@ router.post('/', async (req, res) => {
 
     // Convert dateOfBirth to string if it's a Date object
     const dobString = dateOfBirth ? (dateOfBirth instanceof Date ? dateOfBirth.toISOString() : dateOfBirth) : null;
+    const yearLevelVal = (yearLevel >= 1 && yearLevel <= 4) ? yearLevel : null;
 
     const result = await run(
       `INSERT INTO students (
@@ -72,7 +73,7 @@ router.post('/', async (req, res) => {
       [
         studentId, firstName, lastName, dobString, gender, address,
         email, personalPhone, emergencyContact, emergencyContactPhone,
-        relationship, program, yearLevel, gradeSchool, highSchool, college
+        relationship, program, yearLevelVal, gradeSchool, highSchool, college
       ]
     );
 
@@ -110,6 +111,7 @@ router.put('/:id', async (req, res) => {
     } = req.body;
 
     const dobString = dateOfBirth ? (dateOfBirth instanceof Date ? dateOfBirth.toISOString() : dateOfBirth) : null;
+    const yearLevelVal = (yearLevel != null && yearLevel >= 1 && yearLevel <= 4) ? yearLevel : null;
 
     const result = await run(
       `UPDATE students SET
@@ -121,7 +123,7 @@ router.put('/:id', async (req, res) => {
       [
         studentId, firstName, lastName, dobString, gender, address,
         email, personalPhone, emergencyContact, emergencyContactPhone,
-        relationship, program, yearLevel, gradeSchool, highSchool, college,
+        relationship, program, yearLevelVal, gradeSchool, highSchool, college,
         req.params.id
       ]
     );

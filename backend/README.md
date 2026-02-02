@@ -77,7 +77,7 @@ Content-Type: application/json
   "emergencyContactPhone": "555-0101",
   "relationship": "Mother",
   "program": "Bachelor of Science in Computer Science",
-  "yearLevel": "3",
+  "yearLevel": 3,
   "gradeSchool": "Elementary School",
   "highSchool": "High School",
   "college": "Previous College"

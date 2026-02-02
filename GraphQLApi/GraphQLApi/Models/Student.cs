@@ -15,7 +15,7 @@ public class Student
     public string? EmergencyContactPhone { get; set; }
     public string? Relationship { get; set; }
     public string? Program { get; set; }
-    public string? YearLevel { get; set; }
+    public int? YearLevel { get; set; }
     public string? GradeSchool { get; set; }
     public string? HighSchool { get; set; }
     public string? College { get; set; }

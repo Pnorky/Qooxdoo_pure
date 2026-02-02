@@ -20,7 +20,7 @@ public class StudentType : ObjectType<Student>
         descriptor.Field(s => s.EmergencyContactPhone).Type<StringType>();
         descriptor.Field(s => s.Relationship).Type<StringType>();
         descriptor.Field(s => s.Program).Type<StringType>();
-        descriptor.Field(s => s.YearLevel).Type<StringType>();
+        descriptor.Field(s => s.YearLevel).Type<IntType>();
         descriptor.Field(s => s.GradeSchool).Type<StringType>();
         descriptor.Field(s => s.HighSchool).Type<StringType>();
         descriptor.Field(s => s.College).Type<StringType>();

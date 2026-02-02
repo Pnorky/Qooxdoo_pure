@@ -28,7 +28,7 @@ function initializeDatabase() {
       emergencyContactPhone TEXT,
       relationship TEXT,
       program TEXT,
-      yearLevel TEXT,
+      yearLevel INTEGER,
       gradeSchool TEXT,
       highSchool TEXT,
       college TEXT,

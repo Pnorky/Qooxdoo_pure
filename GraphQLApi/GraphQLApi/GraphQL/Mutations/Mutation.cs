@@ -1,7 +1,9 @@
 using GraphQLApi.Data;
+using GraphQLApi.GraphQL.Subscriptions;
 using GraphQLApi.Models;
 using GraphQLApi.GraphQL.Types;
 using HotChocolate;
+using HotChocolate.Subscriptions;
 using Microsoft.EntityFrameworkCore;
 
 namespace GraphQLApi.GraphQL.Mutations;
@@ -10,7 +12,8 @@ public class Mutation
 {
     public async Task<Student> AddStudent(
         AddStudentInput input,
-        [Service] AppDbContext context)
+        [Service] AppDbContext context,
+        [Service] ITopicEventSender eventSender)
     {
         // Check if studentId already exists
         var existingStudent = await context.Students
@@ -21,7 +24,7 @@ public class Mutation
             throw new GraphQLException("Student ID already exists");
         }
 
-        var normalizedYearLevel = NormalizeYearLevel(input.YearLevel);
+        var validatedYearLevel = ValidateYearLevel(input.YearLevel);
         var dobString = input.DateOfBirth?.ToString("yyyy-MM-dd");
 
         var student = new Student
@@ -38,7 +41,7 @@ public class Mutation
             EmergencyContactPhone = input.EmergencyContactPhone,
             Relationship = input.Relationship,
             Program = input.Program,
-            YearLevel = normalizedYearLevel,
+            YearLevel = validatedYearLevel,
             GradeSchool = input.GradeSchool,
             HighSchool = input.HighSchool,
             College = input.College,
@@ -49,14 +52,16 @@ public class Mutation
         context.Students.Add(student);
         await context.SaveChangesAsync();
 
-        student.YearLevel = normalizedYearLevel;
+        student.YearLevel = validatedYearLevel;
+        await eventSender.SendAsync(nameof(Subscription.StudentAdded), student);
         return student;
     }
 
     public async Task<Student> UpdateStudent(
         int id,
         UpdateStudentInput input,
-        [Service] AppDbContext context)
+        [Service] AppDbContext context,
+        [Service] ITopicEventSender eventSender)
     {
         var student = await context.Students.FindAsync(id);
         
@@ -77,7 +82,7 @@ public class Mutation
             }
         }
 
-        var normalizedYearLevel = NormalizeYearLevel(input.YearLevel);
+        var validatedYearLevel = input.YearLevel.HasValue ? ValidateYearLevel(input.YearLevel) : null;
         var dobString = input.DateOfBirth?.ToString("yyyy-MM-dd");
 
         // Update properties
@@ -93,7 +98,7 @@ public class Mutation
         if (input.EmergencyContactPhone != null) student.EmergencyContactPhone = input.EmergencyContactPhone;
         if (input.Relationship != null) student.Relationship = input.Relationship;
         if (input.Program != null) student.Program = input.Program;
-        if (input.YearLevel != null) student.YearLevel = normalizedYearLevel;
+        if (input.YearLevel != null) student.YearLevel = validatedYearLevel;
         if (input.GradeSchool != null) student.GradeSchool = input.GradeSchool;
         if (input.HighSchool != null) student.HighSchool = input.HighSchool;
         if (input.College != null) student.College = input.College;
@@ -101,13 +106,15 @@ public class Mutation
         student.UpdatedAt = DateTime.UtcNow;
 
         await context.SaveChangesAsync();
-        student.YearLevel = normalizedYearLevel;
+        student.YearLevel = validatedYearLevel ?? student.YearLevel;
+        await eventSender.SendAsync(nameof(Subscription.StudentUpdated), student);
         return student;
     }
 
     public async Task<bool> DeleteStudent(
         int id,
-        [Service] AppDbContext context)
+        [Service] AppDbContext context,
+        [Service] ITopicEventSender eventSender)
     {
         var student = await context.Students.FindAsync(id);
         
@@ -118,6 +125,7 @@ public class Mutation
 
         context.Students.Remove(student);
         await context.SaveChangesAsync();
+        await eventSender.SendAsync(nameof(Subscription.StudentDeleted), new StudentDeletedEvent(id));
         return true;
     }
 
@@ -217,24 +225,13 @@ public class Mutation
     }
 
     /// <summary>
-    /// Normalize year level to numeric string (1-4)
+    /// Validate year level (1-4). Returns value if valid, null otherwise.
     /// </summary>
-    private static string? NormalizeYearLevel(string? yearLevel)
+    private static int? ValidateYearLevel(int? yearLevel)
     {
-        if (string.IsNullOrWhiteSpace(yearLevel))
-            return null;
-
-        var match = System.Text.RegularExpressions.Regex.Match(yearLevel, @"(\d+)");
-        if (match.Success)
-        {
-            var num = int.Parse(match.Groups[1].Value);
-            if (num >= 1 && num <= 4)
-            {
-                return num.ToString();
-            }
-        }
-
-        return yearLevel;
+        if (yearLevel is >= 1 and <= 4)
+            return yearLevel.Value;
+        return null;
     }
 }
 
@@ -252,7 +249,7 @@ public record AddStudentInput(
     string? EmergencyContactPhone,
     string? Relationship,
     string? Program,
-    string? YearLevel,
+    int? YearLevel,
     string? GradeSchool,
     string? HighSchool,
     string? College
@@ -271,7 +268,7 @@ public record UpdateStudentInput(
     string? EmergencyContactPhone,
     string? Relationship,
     string? Program,
-    string? YearLevel,
+    int? YearLevel,
     string? GradeSchool,
     string? HighSchool,
     string? College

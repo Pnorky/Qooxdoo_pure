@@ -1,6 +1,7 @@
 using GraphQLApi.Data;
 using GraphQLApi.GraphQL.Queries;
 using GraphQLApi.GraphQL.Mutations;
+using GraphQLApi.GraphQL.Subscriptions;
 using GraphQLApi.GraphQL.Types;
 using Microsoft.EntityFrameworkCore;
 
@@ -16,6 +17,8 @@ builder.Services
     .AddGraphQLServer()
     .AddQueryType<Query>()
     .AddMutationType<Mutation>()
+    .AddSubscriptionType<Subscription>()
+    .AddInMemorySubscriptions()
     .AddType<StudentType>()
     .AddType<UserType>()
     .AddType<LoginResultType>()
@@ -46,8 +49,9 @@ using (var scope = app.Services.CreateScope())
 // Configure the HTTP request pipeline
 app.UseCors();
 app.UseRouting();
+app.UseWebSockets();
 
-// Map GraphQL endpoint
+// Map GraphQL endpoint (supports HTTP + WebSocket for subscriptions)
 app.MapGraphQL();
 
 // Health check endpoint

@@ -66,10 +66,10 @@ qx.Class.define("qooxdo_proj.components.Tabs.AcademicInfoTab",
       this._programField.setWidth(350);
 
       this._yearLevelField = new qx.ui.form.SelectBox();
-      this._yearLevelField.add(new qx.ui.form.ListItem("1"));
-      this._yearLevelField.add(new qx.ui.form.ListItem("2"));
-      this._yearLevelField.add(new qx.ui.form.ListItem("3"));
-      this._yearLevelField.add(new qx.ui.form.ListItem("4"));
+      this._yearLevelField.add(new qx.ui.form.ListItem("1", 1));
+      this._yearLevelField.add(new qx.ui.form.ListItem("2", 2));
+      this._yearLevelField.add(new qx.ui.form.ListItem("3", 3));
+      this._yearLevelField.add(new qx.ui.form.ListItem("4", 4));
       
       // Wrap Year Level label and field in containers with matching height
       const yearLevelLabelContainer = new qx.ui.container.Composite();
@@ -154,11 +154,11 @@ qx.Class.define("qooxdo_proj.components.Tabs.AcademicInfoTab",
          programValue = programSelection[0].getLabel();
        }
 
-       // Get year level value (handle SelectBox selection)
-       let yearLevelValue = "";
+       // Get year level value as integer from ListItem model (1-4)
+       let yearLevelValue = null;
        const yearLevelSelection = this._yearLevelField.getSelection();
        if (yearLevelSelection && yearLevelSelection.length > 0) {
-         yearLevelValue = yearLevelSelection[0].getLabel();
+         yearLevelValue = yearLevelSelection[0].getModel();
        }
 
        return {
