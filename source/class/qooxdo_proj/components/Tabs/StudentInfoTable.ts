@@ -1,0 +1,411 @@
+/* ************************************************************************
+
+   Copyright: 2026 
+
+   License: MIT license
+
+   Authors: 
+
+************************************************************************ */
+
+qx.Class.define("qooxdo_proj.components.Tabs.StudentInfoTable",
+  {
+    extend: qx.ui.tabview.Page,
+
+    construct: function () {
+      (this as any).base(arguments, "Student Info Table");
+      this.setLayout(new qx.ui.layout.VBox(10));
+      this.setPadding(10);
+      this._createTable();
+      this._createWindows();
+    },
+
+    members:
+    {
+      _table: null as any,
+      _studentRowNumber: 0,
+      _studentsData: [] as any[], // Store full student data indexed by row
+      _editWindow: null as any,
+      _deleteWindow: null as any,
+      _currentStudent: null as any,
+      _editFields: null as any,
+      _editStudentData: null as any,
+
+      _createTable: function () {
+        const tableModel = new qx.ui.table.model.Simple();
+        tableModel.setColumns(["#", "Student Id", "First Name", "Last Name", "Program", "Year Level"]);
+        tableModel.setColumnEditable(0, false);
+        tableModel.setColumnEditable(1, false);
+        tableModel.setColumnEditable(2, false);
+        tableModel.setColumnEditable(3, false);
+        tableModel.setColumnEditable(4, false);
+        tableModel.setColumnEditable(5, false);
+        this._table = new qx.ui.table.Table(tableModel);
+        this._table.set({ width: 800, height: 400 });
+        this._table.addListener("cellClick", (e: any) => {
+          const rowIndex = e.getRow();
+          const rowData = this._studentsData[rowIndex];
+          if (rowData) this._handleRowClick(rowIndex, rowData);
+        }, this);
+        this.add(this._table, { flex: 1 });
+      },
+
+      _createWindows: function () {
+        this._editWindow = new qx.ui.window.Window("Edit Student");
+        this._editWindow.setLayout(new qx.ui.layout.VBox(10));
+        this._editWindow.setWidth(700);
+        this._editWindow.setHeight(700);
+        this._editWindow.setAllowClose(true);
+        this._editWindow.setAllowMaximize(false);
+        this._editWindow.setAllowMinimize(false);
+        this._editWindow.setResizable(true);
+        this._editWindow.setMovable(true);
+        this._editWindow.setShowClose(true);
+        this._editWindow.setShowMaximize(false);
+        this._editWindow.setShowMinimize(false);
+        this._deleteWindow = new qx.ui.window.Window("Delete Student");
+        this._deleteWindow.setLayout(new qx.ui.layout.VBox(15));
+        this._deleteWindow.setWidth(500);
+        this._deleteWindow.setHeight(220);
+        this._deleteWindow.setAllowClose(true);
+        this._deleteWindow.setAllowMaximize(false);
+        this._deleteWindow.setAllowMinimize(false);
+        this._deleteWindow.setResizable(false);
+        this._deleteWindow.setMovable(true);
+        this._deleteWindow.setShowClose(true);
+        this._deleteWindow.setShowMaximize(false);
+        this._deleteWindow.setShowMinimize(false);
+        this._deleteWindow.setPadding(20);
+        const root = (qx.core.Init.getApplication() as any).getRoot();
+        if (root) {
+          root.add(this._editWindow);
+          root.add(this._deleteWindow);
+        }
+      },
+
+      _handleRowClick: function (rowIndex: number, rowData: any) {
+        if (rowIndex < 0 || rowIndex >= this._studentsData.length) return;
+        const student = this._studentsData[rowIndex];
+        if (!student) return;
+        this._currentStudent = student;
+        this._showEditDialog(student);
+      },
+
+      _showEditDialog: function (student: any) {
+        console.log("[DEBUG] Student data for edit:", student);
+        this._editWindow.removeAll();
+        this._editWindow.add(new qx.ui.basic.Label("Update student information below."));
+        const scrollContainer = new qx.ui.container.Scroll();
+        scrollContainer.set({ width: 680, height: 550 });
+        const formGrid = new qx.ui.container.Composite();
+        const gridLayout = new qx.ui.layout.Grid(10, 10);
+        gridLayout.setColumnFlex(0, 0);
+        gridLayout.setColumnFlex(1, 1);
+        formGrid.setLayout(gridLayout);
+        formGrid.setPadding(10);
+        const labelWidth = 180;
+        let currentRow = 0;
+        formGrid.add(new qx.ui.basic.Label("Personal Information"), { row: currentRow++, column: 0, colSpan: 2 });
+        const studentIdLabel = new qx.ui.basic.Label("Student ID:");
+        studentIdLabel.setWidth(labelWidth);
+        const studentIdField = new qx.ui.form.TextField();
+        studentIdField.addListenerOnce("appear", () => { studentIdField.setValue(student.studentId || ""); }, this);
+        formGrid.add(studentIdLabel, { row: currentRow, column: 0 });
+        formGrid.add(studentIdField, { row: currentRow++, column: 1 });
+        const firstNameLabel = new qx.ui.basic.Label("First Name:");
+        firstNameLabel.setWidth(labelWidth);
+        const firstNameField = new qx.ui.form.TextField();
+        firstNameField.addListenerOnce("appear", () => { firstNameField.setValue(student.firstName || ""); }, this);
+        formGrid.add(firstNameLabel, { row: currentRow, column: 0 });
+        formGrid.add(firstNameField, { row: currentRow++, column: 1 });
+        const lastNameLabel = new qx.ui.basic.Label("Last Name:");
+        lastNameLabel.setWidth(labelWidth);
+        const lastNameField = new qx.ui.form.TextField();
+        lastNameField.addListenerOnce("appear", () => { lastNameField.setValue(student.lastName || ""); }, this);
+        formGrid.add(lastNameLabel, { row: currentRow, column: 0 });
+        formGrid.add(lastNameField, { row: currentRow++, column: 1 });
+        const dobLabel = new qx.ui.basic.Label("Date of Birth:");
+        dobLabel.setWidth(labelWidth);
+        const dobField = new qx.ui.form.DateField();
+        dobField.setMaxWidth(200);
+        if (student.dateOfBirth) dobField.setValue(new Date(student.dateOfBirth));
+        formGrid.add(dobLabel, { row: currentRow, column: 0 });
+        formGrid.add(dobField, { row: currentRow++, column: 1 });
+        const genderLabel = new qx.ui.basic.Label("Gender:");
+        genderLabel.setWidth(labelWidth);
+        const genderField = new qx.ui.form.SelectBox();
+        genderField.add(new qx.ui.form.ListItem("Male"));
+        genderField.add(new qx.ui.form.ListItem("Female"));
+        if (student.gender) {
+          const items = genderField.getChildren() as any[];
+          for (let i = 0; i < items.length; i++) {
+            if (items[i].getLabel() === student.gender) { genderField.setSelection([items[i]]); break; }
+          }
+        }
+        formGrid.add(genderLabel, { row: currentRow, column: 0 });
+        formGrid.add(genderField, { row: currentRow++, column: 1 });
+        const addressLabel = new qx.ui.basic.Label("Address:");
+        addressLabel.setWidth(labelWidth);
+        const addressField = new qx.ui.form.TextArea();
+        addressField.setHeight(80);
+        addressField.addListenerOnce("appear", () => { addressField.setValue(student.address || ""); }, this);
+        formGrid.add(addressLabel, { row: currentRow, column: 0 });
+        formGrid.add(addressField, { row: currentRow++, column: 1 });
+        formGrid.add(new qx.ui.basic.Label("Contact Information"), { row: currentRow++, column: 0, colSpan: 2 });
+        const emailLabel = new qx.ui.basic.Label("Email:");
+        emailLabel.setWidth(labelWidth);
+        const emailField = new qx.ui.form.TextField();
+        emailField.addListenerOnce("appear", () => { emailField.setValue(student.email || ""); }, this);
+        formGrid.add(emailLabel, { row: currentRow, column: 0 });
+        formGrid.add(emailField, { row: currentRow++, column: 1 });
+        const personalPhoneLabel = new qx.ui.basic.Label("Personal Phone:");
+        personalPhoneLabel.setWidth(labelWidth);
+        const personalPhoneField = new qx.ui.form.TextField();
+        personalPhoneField.addListenerOnce("appear", () => { personalPhoneField.setValue(student.personalPhone || ""); }, this);
+        formGrid.add(personalPhoneLabel, { row: currentRow, column: 0 });
+        formGrid.add(personalPhoneField, { row: currentRow++, column: 1 });
+        const emergencyContactLabel = new qx.ui.basic.Label("Emergency Contact:");
+        emergencyContactLabel.setWidth(labelWidth);
+        const emergencyContactField = new qx.ui.form.TextField();
+        emergencyContactField.addListenerOnce("appear", () => { emergencyContactField.setValue(student.emergencyContact || ""); }, this);
+        formGrid.add(emergencyContactLabel, { row: currentRow, column: 0 });
+        formGrid.add(emergencyContactField, { row: currentRow++, column: 1 });
+        const emergencyContactPhoneLabel = new qx.ui.basic.Label("Emergency Contact Phone:");
+        emergencyContactPhoneLabel.setWidth(labelWidth);
+        const emergencyContactPhoneField = new qx.ui.form.TextField();
+        emergencyContactPhoneField.addListenerOnce("appear", () => { emergencyContactPhoneField.setValue(student.emergencyContactPhone || ""); }, this);
+        formGrid.add(emergencyContactPhoneLabel, { row: currentRow, column: 0 });
+        formGrid.add(emergencyContactPhoneField, { row: currentRow++, column: 1 });
+        const relationshipLabel = new qx.ui.basic.Label("Relationship:");
+        relationshipLabel.setWidth(labelWidth);
+        const relationshipField = new qx.ui.form.TextField();
+        relationshipField.addListenerOnce("appear", () => { relationshipField.setValue(student.relationship || ""); }, this);
+        formGrid.add(relationshipLabel, { row: currentRow, column: 0 });
+        formGrid.add(relationshipField, { row: currentRow++, column: 1 });
+        formGrid.add(new qx.ui.basic.Label("Academic Information"), { row: currentRow++, column: 0, colSpan: 2 });
+        const programLabel = new qx.ui.basic.Label("Program:");
+        programLabel.setWidth(labelWidth);
+        const programField = new qx.ui.form.SelectBox();
+        const programItems = [
+          "Bachelor of Science in Computer Science", "Bachelor of Science in Information Technology",
+          "Bachelor of Science in Information Systems", "Bachelor of Science in Business Administration",
+          "Bachelor of Science in Accounting", "Bachelor of Science in Marketing", "Bachelor of Science in Management"
+        ].map(l => new qx.ui.form.ListItem(l));
+        programItems.forEach((item: any) => programField.add(item));
+        if (student.program) {
+          for (let i = 0; i < programItems.length; i++) {
+            if (programItems[i].getLabel() === student.program) { programField.setSelection([programItems[i]]); break; }
+          }
+        }
+        formGrid.add(programLabel, { row: currentRow, column: 0 });
+        formGrid.add(programField, { row: currentRow++, column: 1 });
+        const yearLevelLabel = new qx.ui.basic.Label("Year Level:");
+        yearLevelLabel.setWidth(labelWidth);
+        const yearLevelField = new qx.ui.form.SelectBox();
+        const yearLevelItems = [1, 2, 3, 4].map((n, i) => new qx.ui.form.ListItem((["1st", "2nd", "3rd", "4th"] as const)[i] + " Year", n as any));
+        yearLevelItems.forEach((item: any) => yearLevelField.add(item));
+        if (student.yearLevel != null && student.yearLevel >= 1 && student.yearLevel <= 4) {
+          const item = yearLevelItems[(student.yearLevel as number) - 1];
+          if (item) yearLevelField.setSelection([item]);
+        }
+        formGrid.add(yearLevelLabel, { row: currentRow, column: 0 });
+        formGrid.add(yearLevelField, { row: currentRow++, column: 1 });
+        formGrid.add(new qx.ui.basic.Label("Previous Schools Attended"), { row: currentRow++, column: 0, colSpan: 2 });
+        const gradeSchoolLabel = new qx.ui.basic.Label("Grade School:");
+        gradeSchoolLabel.setWidth(labelWidth);
+        const gradeSchoolField = new qx.ui.form.TextField();
+        gradeSchoolField.addListenerOnce("appear", () => { gradeSchoolField.setValue(student.gradeSchool || ""); }, this);
+        formGrid.add(gradeSchoolLabel, { row: currentRow, column: 0 });
+        formGrid.add(gradeSchoolField, { row: currentRow++, column: 1 });
+        const highSchoolLabel = new qx.ui.basic.Label("High School:");
+        highSchoolLabel.setWidth(labelWidth);
+        const highSchoolField = new qx.ui.form.TextField();
+        highSchoolField.addListenerOnce("appear", () => { highSchoolField.setValue(student.highSchool || ""); }, this);
+        formGrid.add(highSchoolLabel, { row: currentRow, column: 0 });
+        formGrid.add(highSchoolField, { row: currentRow++, column: 1 });
+        const collegeLabel = new qx.ui.basic.Label("College:");
+        collegeLabel.setWidth(labelWidth);
+        const collegeField = new qx.ui.form.TextField();
+        collegeField.addListenerOnce("appear", () => { collegeField.setValue(student.college || ""); }, this);
+        formGrid.add(collegeLabel, { row: currentRow, column: 0 });
+        formGrid.add(collegeField, { row: currentRow++, column: 1 });
+        scrollContainer.add(formGrid);
+        this._editWindow.add(scrollContainer, { flex: 1 });
+        qx.event.Timer.once(() => {
+          if (student.studentId) studentIdField.setValue(student.studentId);
+          if (student.firstName) firstNameField.setValue(student.firstName);
+          if (student.lastName) lastNameField.setValue(student.lastName);
+          if (student.dateOfBirth) {
+            try {
+              const d = new Date(student.dateOfBirth);
+              if (!isNaN(d.getTime())) dobField.setValue(d);
+            } catch (e) { console.warn("Error parsing dateOfBirth:", e); }
+          }
+          if (student.gender) {
+            const items = genderField.getChildren() as any[];
+            for (let i = 0; i < items.length; i++) {
+              if (items[i].getLabel() === student.gender) { genderField.setSelection([items[i]]); break; }
+            }
+          }
+          if (student.address) addressField.setValue(student.address);
+          if (student.email) emailField.setValue(student.email);
+          if (student.personalPhone) personalPhoneField.setValue(student.personalPhone);
+          if (student.emergencyContact) emergencyContactField.setValue(student.emergencyContact);
+          if (student.emergencyContactPhone) emergencyContactPhoneField.setValue(student.emergencyContactPhone);
+          if (student.relationship) relationshipField.setValue(student.relationship);
+          if (student.program) {
+            const items = programField.getChildren() as any[];
+            for (let i = 0; i < items.length; i++) {
+              if (items[i].getLabel() === student.program) { programField.setSelection([items[i]]); break; }
+            }
+          }
+          if (student.yearLevel != null && student.yearLevel >= 1 && student.yearLevel <= 4) {
+            const items = yearLevelField.getChildren() as any[];
+            for (let i = 0; i < items.length; i++) {
+              if (items[i].getModel() === student.yearLevel) { yearLevelField.setSelection([items[i]]); break; }
+            }
+          }
+          if (student.gradeSchool) gradeSchoolField.setValue(student.gradeSchool);
+          if (student.highSchool) highSchoolField.setValue(student.highSchool);
+          if (student.college) collegeField.setValue(student.college);
+        }, this, 150);
+        const buttonContainer = new qx.ui.container.Composite();
+        buttonContainer.setLayout(new qx.ui.layout.HBox(10));
+        buttonContainer.setPadding(10);
+        const saveButton = new qx.ui.form.Button("Save");
+        saveButton.addListener("execute", () => {
+          this._editWindow.close();
+          let dateOfBirthValue: any = null;
+          const dobValue = dobField.getValue();
+          if (dobValue) dateOfBirthValue = dobValue instanceof Date ? dobValue.toISOString().split("T")[0] : dobValue;
+          let genderValue = "";
+          const gs = genderField.getSelection();
+          if (gs && gs.length > 0) genderValue = (gs[0] as any).getLabel();
+          this._saveStudent(student.id, {
+            studentId: studentIdField.getValue(),
+            firstName: firstNameField.getValue(),
+            lastName: lastNameField.getValue(),
+            dateOfBirth: dateOfBirthValue,
+            gender: genderValue,
+            address: addressField.getValue() || "",
+            email: emailField.getValue() || "",
+            personalPhone: personalPhoneField.getValue() || "",
+            emergencyContact: emergencyContactField.getValue() || "",
+            emergencyContactPhone: emergencyContactPhoneField.getValue() || "",
+            relationship: relationshipField.getValue() || "",
+            program: (programField.getSelection() && programField.getSelection().length > 0) ? (programField.getSelection() as any[])[0].getLabel() : "",
+            yearLevel: (yearLevelField.getSelection() && yearLevelField.getSelection().length > 0) ? (yearLevelField.getSelection() as any[])[0].getModel() : null,
+            gradeSchool: gradeSchoolField.getValue() || "",
+            highSchool: highSchoolField.getValue() || "",
+            college: collegeField.getValue() || ""
+          });
+        }, this);
+        const cancelButton = new qx.ui.form.Button("Cancel");
+        cancelButton.addListener("execute", () => { this._editWindow.close(); }, this);
+        const deleteButton = new qx.ui.form.Button("Delete");
+        deleteButton.addListener("execute", () => { this._editWindow.close(); this._showDeleteDialog(student); }, this);
+        buttonContainer.add(saveButton);
+        buttonContainer.add(cancelButton);
+        buttonContainer.add(deleteButton);
+        this._editWindow.add(buttonContainer);
+        (this as any)._editFields = { studentId: studentIdField, firstName: firstNameField, lastName: lastNameField, dob: dobField, gender: genderField, address: addressField, email: emailField, personalPhone: personalPhoneField, emergencyContact: emergencyContactField, emergencyContactPhone: emergencyContactPhoneField, relationship: relationshipField, program: programField, yearLevel: yearLevelField, gradeSchool: gradeSchoolField, highSchool: highSchoolField, college: collegeField };
+        (this as any)._editStudentData = student;
+        this._editWindow.addListenerOnce("appear", () => {
+          const s = (this as any)._editStudentData;
+          const f = (this as any)._editFields;
+          if (s.studentId) f.studentId.setValue(s.studentId);
+          if (s.firstName) f.firstName.setValue(s.firstName);
+          if (s.lastName) f.lastName.setValue(s.lastName);
+          if (s.dateOfBirth) { try { const d = new Date(s.dateOfBirth); if (!isNaN(d.getTime())) f.dob.setValue(d); } catch (e) {} }
+          if (s.gender) f.gender.setValue(s.gender);
+          if (s.address) f.address.setValue(s.address);
+          if (s.email) f.email.setValue(s.email);
+          if (s.personalPhone) f.personalPhone.setValue(s.personalPhone);
+          if (s.emergencyContact) f.emergencyContact.setValue(s.emergencyContact);
+          if (s.emergencyContactPhone) f.emergencyContactPhone.setValue(s.emergencyContactPhone);
+          if (s.relationship) f.relationship.setValue(s.relationship);
+          if (s.program) f.program.setValue(s.program);
+          if (s.yearLevel != null && s.yearLevel >= 1 && s.yearLevel <= 4) {
+            const items = f.yearLevel.getChildren();
+            for (let i = 0; i < items.length; i++) {
+              if (items[i].getModel() === s.yearLevel) { f.yearLevel.setSelection([items[i]]); break; }
+            }
+          }
+          if (s.gradeSchool) f.gradeSchool.setValue(s.gradeSchool);
+          if (s.highSchool) f.highSchool.setValue(s.highSchool);
+          if (s.college) f.college.setValue(s.college);
+        }, this);
+        this._editWindow.center();
+        this._editWindow.open();
+      },
+
+      _saveStudent: function (studentId: number, studentData: any) {
+        qooxdo_proj.utils.GraphQLClient.updateStudent(studentId, studentData)
+          .then(() => this.loadStudents())
+          .catch((error: any) => { console.error("Failed to update student:", error); alert("Failed to update student: " + error.message); });
+      },
+
+      _showDeleteDialog: function (student: any) {
+        this._deleteWindow.removeAll();
+        const contentContainer = new qx.ui.container.Composite();
+        contentContainer.setLayout(new qx.ui.layout.VBox(15));
+        contentContainer.setPadding(10);
+        const descriptionLabel = new qx.ui.basic.Label("Are you sure you want to delete this student? This action cannot be undone.");
+        descriptionLabel.setWidth(440);
+        contentContainer.add(descriptionLabel);
+        const infoLabel = new qx.ui.basic.Label(`Student: ${student.firstName} ${student.lastName} (${student.studentId})`);
+        infoLabel.setWidth(440);
+        infoLabel.setFont("bold");
+        contentContainer.add(infoLabel);
+        this._deleteWindow.add(contentContainer, { flex: 1 });
+        const buttonContainer = new qx.ui.container.Composite();
+        buttonContainer.setLayout(new qx.ui.layout.HBox(10, "right"));
+        buttonContainer.setPadding(10);
+        const cancelBtn = new qx.ui.form.Button("Cancel");
+        cancelBtn.addListener("execute", () => this._deleteWindow.close(), this);
+        const deleteBtn = new qx.ui.form.Button("Delete");
+        deleteBtn.addListener("execute", () => { this._deleteWindow.close(); this._deleteStudent(student.id); }, this);
+        buttonContainer.add(cancelBtn);
+        buttonContainer.add(deleteBtn);
+        this._deleteWindow.add(buttonContainer);
+        this._deleteWindow.center();
+        this._deleteWindow.open();
+      },
+
+      _deleteStudent: function (studentId: number) {
+        qooxdo_proj.utils.GraphQLClient.deleteStudent(studentId)
+          .then(() => this.loadStudents())
+          .catch((error: any) => { console.error("Failed to delete student:", error); alert("Failed to delete student: " + error.message); });
+      },
+
+      addStudent: function (studentData: any) {
+        this._studentRowNumber++;
+        this._studentsData.push(studentData);
+        const tableModel = this._table.getTableModel();
+        tableModel.addRows([[this._studentRowNumber, studentData.studentId || "", studentData.firstName || "", studentData.lastName || "", studentData.program || "", (studentData.yearLevel != null ? studentData.yearLevel : "")]]);
+      },
+
+      clear: function () {
+        this._table.getTableModel().setData([]);
+        this._studentRowNumber = 0;
+        this._studentsData = [];
+      },
+
+      loadStudents: function () {
+        qooxdo_proj.utils.GraphQLClient.getStudents()
+          .then((students: any[]) => {
+            this.clear();
+            const tableModel = this._table.getTableModel();
+            const rowsData: any[] = [];
+            students.forEach((student: any) => {
+              this._studentRowNumber++;
+              const studentData = { id: student.id, studentId: student.studentId, firstName: student.firstName, lastName: student.lastName, program: student.program, yearLevel: student.yearLevel, dateOfBirth: student.dateOfBirth, gender: student.gender, address: student.address, email: student.email, personalPhone: student.personalPhone, emergencyContact: student.emergencyContact, emergencyContactPhone: student.emergencyContactPhone, relationship: student.relationship, gradeSchool: student.gradeSchool, highSchool: student.highSchool, college: student.college };
+              this._studentsData.push(studentData);
+              rowsData.push([this._studentRowNumber, studentData.studentId || "", studentData.firstName || "", studentData.lastName || "", studentData.program || "", (studentData.yearLevel != null ? studentData.yearLevel : "")]);
+            });
+            if (rowsData.length > 0) tableModel.addRows(rowsData);
+          })
+          .catch((error: any) => console.error("Failed to load students from API:", error));
+      }
+    }
+  });
