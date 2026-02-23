@@ -49,10 +49,11 @@ qx.Class.define("qooxdo_proj.components.Tabs.AcademicInfoTab", {
             academicInfoGrid.add(programFieldContainer, { row: 0, column: 1 });
             this._programField.setWidth(350);
             this._yearLevelField = new qx.ui.form.SelectBox();
-            this._yearLevelField.add(new qx.ui.form.ListItem("1", 1));
-            this._yearLevelField.add(new qx.ui.form.ListItem("2", 2));
-            this._yearLevelField.add(new qx.ui.form.ListItem("3", 3));
-            this._yearLevelField.add(new qx.ui.form.ListItem("4", 4));
+            // pass null for the icon, use third arg for model/value
+            this._yearLevelField.add(new qx.ui.form.ListItem("1", null, 1));
+            this._yearLevelField.add(new qx.ui.form.ListItem("2", null, 2));
+            this._yearLevelField.add(new qx.ui.form.ListItem("3", null, 3));
+            this._yearLevelField.add(new qx.ui.form.ListItem("4", null, 4));
             const yearLevelLabelContainer = new qx.ui.container.Composite();
             const yearLevelLabelLayout = new qx.ui.layout.HBox();
             yearLevelLabelLayout.setAlignY("middle");

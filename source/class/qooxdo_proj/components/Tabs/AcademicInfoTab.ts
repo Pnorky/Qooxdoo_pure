@@ -62,10 +62,11 @@ qx.Class.define("qooxdo_proj.components.Tabs.AcademicInfoTab",
       (this as any)._programField.setWidth(350);
 
       (this as any)._yearLevelField = new qx.ui.form.SelectBox();
-      (this as any)._yearLevelField.add(new qx.ui.form.ListItem("1", 1 as any));
-      (this as any)._yearLevelField.add(new qx.ui.form.ListItem("2", 2 as any));
-      (this as any)._yearLevelField.add(new qx.ui.form.ListItem("3", 3 as any));
-      (this as any)._yearLevelField.add(new qx.ui.form.ListItem("4", 4 as any));
+      // pass null for the icon parameter and use the third argument for the value/model
+      (this as any)._yearLevelField.add(new qx.ui.form.ListItem("1", null, 1 as any));
+      (this as any)._yearLevelField.add(new qx.ui.form.ListItem("2", null, 2 as any));
+      (this as any)._yearLevelField.add(new qx.ui.form.ListItem("3", null, 3 as any));
+      (this as any)._yearLevelField.add(new qx.ui.form.ListItem("4", null, 4 as any));
 
       const yearLevelLabelContainer = new qx.ui.container.Composite();
       const yearLevelLabelLayout = new qx.ui.layout.HBox();
